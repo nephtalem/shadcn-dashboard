@@ -25,6 +25,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { signIn } from "next-auth/react"; // Import signIn from next-auth/react
+import { useState } from "react"; // Add loading state
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -33,6 +35,9 @@ const formSchema = z.object({
 
 export default function LoginPage() {
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false); // Add loading state
+  const [error, setError] = useState(""); // Add error state
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -41,10 +46,32 @@ export default function LoginPage() {
     },
   });
 
-  const handleSubmit = (data: z.infer<typeof formSchema>) => {
-    console.log("login validation passed");
-    router.push("/dashboard");
-  };
+const handleSubmit = async (data: z.infer<typeof formSchema>) => {
+  setIsSubmitting(true); // Set loading state
+  setError(""); // Clear any previous errors
+
+  try {
+    // Use NextAuth's signIn function to authenticate the user
+    const result = await signIn("credentials", {
+      email: data.email,
+      password: data.password,
+      redirect: false, // Disable automatic redirection
+    });
+
+    if (result?.error) {
+      // Handle authentication errors
+      setError(result.error);
+    } else {
+      // Redirect to the dashboard on success
+      window.location.href = "/dashboard"; // Force a full page reload
+    }
+  } catch (error) {
+    console.error("Login error:", error);
+    setError("An unexpected error occurred. Please try again.");
+  } finally {
+    setIsSubmitting(false); // Reset loading state
+  }
+};
 
   return (
     <>
@@ -89,7 +116,10 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit">Login</Button>
+              {error && <p className="text-red-500 text-sm">{error}</p>}
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Logging in..." : "Login"}
+              </Button>
             </form>
           </Form>
         </CardContent>

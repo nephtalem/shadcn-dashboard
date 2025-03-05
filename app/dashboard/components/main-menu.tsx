@@ -1,11 +1,18 @@
+"use client"; // Add this directive since we're using client-side functionality
+
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import MenuItem from "./menu-item";
 import MenuTitle from "./menu-title";
 import Link from "next/link";
 import { LightDarkToggle } from "@/components/ui/light-dark-toggle";
 import { cn } from "@/lib/utils";
+import { signOut } from "next-auth/react"; // Import signOut from next-auth/react
 
 export default function MainMenu({ className }: { className?: string }) {
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: "/login" }); // Redirect to the login page after logout
+  };
+
   return (
     <nav
       className={cn(`md:bg-muted overflow-auto p-4 flex flex-col`, className)}
@@ -21,15 +28,15 @@ export default function MainMenu({ className }: { className?: string }) {
         <MenuItem href="/dashboard/account">Account</MenuItem>
         <MenuItem href="/dashboard/settings">Settings</MenuItem>
       </ul>
-      <footer className="flex gap-2 items-center ">
+      <footer className="flex gap-2 items-center">
         <Avatar>
           <AvatarFallback className="bg-pink-300 dark:bg-pink-800">
             TP
           </AvatarFallback>
         </Avatar>
-        <Link href="/" className="hover:underline">
+        <button onClick={handleLogout} className="hover:underline cursor-pointer">
           Logout
-        </Link>
+        </button>
         <LightDarkToggle className="ml-auto" />
       </footer>
     </nav>

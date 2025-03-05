@@ -40,6 +40,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
+import { useState } from "react"; // Import useState
 
 const formSchema = z
   .object({
@@ -101,6 +102,7 @@ const formSchema = z
 
 export default function SignupPage() {
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false); // Add loading state
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -112,9 +114,37 @@ export default function SignupPage() {
     },
   });
 
-  const handleSubmit = (data: z.infer<typeof formSchema>) => {
-    console.log("login validation passed: ", data);
-    router.push("/dashboard");
+  const handleSubmit = async (data: z.infer<typeof formSchema>) => {
+    setIsSubmitting(true); // Set loading state to true
+
+    try {
+      // Convert the Date object to an ISO string for JSON serialization
+      const payload = {
+        ...data,
+        dob: data.dob.toISOString(), // Convert Date to ISO string
+      };
+
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log(result.message); // "User created successfully!"
+        router.push("/dashboard");
+      } else {
+        const errorData = await response.json();
+        console.error("Signup failed:", errorData.message);
+      }
+    } catch (error) {
+      console.error("Error during signup:", error);
+    } finally {
+      setIsSubmitting(false); // Reset loading state
+    }
   };
 
   const accountType = form.watch("accountType");
@@ -299,7 +329,9 @@ export default function SignupPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit">Sign up</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Submitting..." : "Sign up"}
+              </Button>
             </form>
           </Form>
         </CardContent>

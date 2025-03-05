@@ -3,9 +3,12 @@
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import MainMenu from "./components/main-menu";
 import MenuTitle from "./components/menu-title";
-import { MenuIcon } from "lucide-react";
+
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { redirect } from "next/navigation";
+import { MenuIcon, Loader2 } from "lucide-react"; // Import Loader2
 
 export default function DashboardLayout({
   children,
@@ -13,8 +16,25 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
-
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Use useSession to check the session
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    // If the session is not loading and there's no session, redirect to login
+    if (status !== "loading" && !session) {
+      redirect("/login");
+    }
+  }, [session, status]);
+
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" /> {/* Spinner */}
+      </div>
+    );
+  }
 
   return (
     <div className="md:grid md:grid-cols-[250px_1fr] h-screen">
@@ -38,7 +58,7 @@ export default function DashboardLayout({
         </div>
       )}
       <div className="overflow-auto py-2 px-4">
-        <h1 className="pb-4">Welcome back, Tom!</h1>
+        <h1 className="pb-4">Welcome back, {session?.user?.name || "User"}!</h1>
         {children}
       </div>
     </div>
