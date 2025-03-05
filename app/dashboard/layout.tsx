@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { MenuIcon, Loader2 } from "lucide-react"; // Import Loader2
+import { Skeleton } from "./components/dashboard-skeleton";
 
 export default function DashboardLayout({
   children,
@@ -28,13 +29,30 @@ export default function DashboardLayout({
     }
   }, [session, status]);
 
-  if (status === "loading") {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" /> {/* Spinner */}
+if (status === "loading") {
+  return (
+    <div className="md:grid md:grid-cols-[250px_1fr] h-screen">
+      {/* Sidebar Skeleton */}
+      <div className="hidden md:flex flex-col p-4 gap-4 border-r border-border">
+        <Skeleton className="h-8 w-24" /> {/* Menu Title Skeleton */}
+        <div className="flex flex-col gap-4">
+          <Skeleton className="h-10 w-full" /> {/* Menu Item Skeleton */}
+          <Skeleton className="h-10 w-full" /> {/* Menu Item Skeleton */}
+          <Skeleton className="h-10 w-full" /> {/* Menu Item Skeleton */}
+        </div>
       </div>
-    );
-  }
+
+      {/* Main Content Skeleton */}
+      <div className="overflow-auto py-2 px-4">
+        <Skeleton className="h-8 w-48 mb-4" /> {/* Welcome Message Skeleton */}
+        <div className="space-y-4">
+          <Skeleton className="h-64 w-full" /> {/* Content Skeleton */}
+          <Skeleton className="h-96 w-full" /> {/* Content Skeleton */}
+        </div>
+      </div>
+    </div>
+  );
+}
 
   return (
     <div className="md:grid md:grid-cols-[250px_1fr] h-screen">
